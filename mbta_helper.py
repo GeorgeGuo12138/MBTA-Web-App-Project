@@ -1,4 +1,8 @@
+import json
 import os
+import pprint
+import urllib.request
+
 
 from dotenv import load_dotenv
 
@@ -13,6 +17,15 @@ MBTA_API_KEY = os.getenv("MBTA_API_KEY")
 MAPBOX_BASE_URL = "https://api.mapbox.com/geocoding/v5/mapbox.places"
 MBTA_BASE_URL = "https://api-v3.mbta.com/stops"
 
+query = "Babson College"
+query = query.replace(" ", "%20")
+url=f"{MAPBOX_BASE_URL}/{query}.json?access_token={MAPBOX_TOKEN}&types=poi"
+print(url)
+
+with urllib.request.urlopen(url) as resp:
+    response_text = resp.read().decode("utf-8")
+    response_data = json.loads(response_text)
+    pprint.pprint(response_data)
 
 # A little bit of scaffolding if you want to use it
 def get_json(url: str) -> dict:

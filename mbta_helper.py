@@ -3,73 +3,75 @@ import os
 import pprint
 import urllib.request
 
-
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
 
-# Get API keys from environment variables
+# ─────────────────────────── Load API keys ─────────────────────────────────────
+load_dotenv()
 MAPBOX_TOKEN = os.getenv("MAPBOX_TOKEN")
 MBTA_API_KEY = os.getenv("MBTA_API_KEY")
 
-# Useful base URLs (you need to add the appropriate parameters for each API request)
 MAPBOX_BASE_URL = "https://api.mapbox.com/geocoding/v5/mapbox.places"
-MBTA_BASE_URL = "https://api-v3.mbta.com/stops"
+MBTA_BASE_URL  = "https://api-v3.mbta.com/stops"
 
-query = "Babson College"
-query = query.replace(" ", "%20")
-url=f"{MAPBOX_BASE_URL}/{query}.json?access_token={MAPBOX_TOKEN}&types=poi"
-print(url)
 
-with urllib.request.urlopen(url) as resp:
-    response_text = resp.read().decode("utf-8")
-    response_data = json.loads(response_text)
-    pprint.pprint(response_data)
-
-# A little bit of scaffolding if you want to use it
+# ─────────────────────────── Helper: GET → JSON ───────────────────────────────
 def get_json(url: str) -> dict:
-    """
-    Given a properly formatted URL for a JSON web API request, return a Python JSON object containing the response to that request.
-
-    Both get_lat_lng() and get_nearest_station() might need to use this function.
-    """
-    pass
+    """Download *url* and return the parsed JSON."""
+    with urllib.request.urlopen(url) as resp:
+        data_bytes = resp.read()
+    return json.loads(data_bytes.decode("utf-8"))
 
 
+# ─────────────────────────── Geocoding via Mapbox ─────────────────────────────
 def get_lat_lng(place_name: str) -> tuple[str, str]:
     """
-    Given a place name or address, return a (latitude, longitude) tuple with the coordinates of the given place.
+    Convert a place name (“Fenway Park”) into (lat, lon) strings.
 
-    See https://docs.mapbox.com/api/search/geocoding/ for Mapbox Geocoding API URL formatting requirements.
+    Because we are avoiding urllib.parse, we only replace blanks with %20.
+    That is enough for simple inputs used in this assignment.
     """
-    pass
+    query = place_name.replace(" ", "%20")
+    url   = f"{MAPBOX_BASE_URL}/{query}.json?access_token={MAPBOX_TOKEN}&limit=1"
+    data  = get_json(url)
+
+    # Mapbox returns coordinates as [longitude, latitude]
+    lon, lat = data["features"][0]["geometry"]["coordinates"]
+    return str(lat), str(lon)
 
 
-def get_nearest_station(latitude: str, longitude: str) -> tuple[str, bool]:
+# ───────────────────────────── MBTA nearest stop ──────────────────────────────
+def get_nearest_station(lat: str, lon: str) -> tuple[str, bool]:
     """
-    Given latitude and longitude strings, return a (station_name, wheelchair_accessible) tuple for the nearest MBTA station to the given coordinates.
+    Given coordinates, return (station_name, is_wheelchair_accessible).
 
-    See https://api-v3.mbta.com/docs/swagger/index.html#/Stop/ApiWeb_StopController_index for URL formatting requirements for the 'GET /stops' API.
+    We build the query string manually – square brackets are written verbatim.
     """
-    pass
+    url = (
+        f"{MBTA_BASE_URL}"
+        f"?api_key={MBTA_API_KEY}"
+        f"&filter[latitude]={lat}"
+        f"&filter[longitude]={lon}"
+        f"&sort=distance"
+        f"&page[limit]=1"
+    )
+    data = get_json(url)
+
+    stop   = data["data"][0]["attributes"]
+    name   = stop["name"]
+    # Wheelchair code: 1 = accessible; 2 or 0 = not / unknown
+    wheel  = stop["wheelchair_boarding"] == 1
+    return name, wheel
 
 
+# ─────────────────────────── Convenience wrapper ──────────────────────────────
 def find_stop_near(place_name: str) -> tuple[str, bool]:
-    """
-    Given a place name or address, return the nearest MBTA stop and whether it is wheelchair accessible.
-
-    This function might use all the functions above.
-    """
-    pass
+    """One-liner for outside use."""
+    lat, lon = get_lat_lng(place_name)
+    return get_nearest_station(lat, lon)
 
 
-def main():
-    """
-    You should test all the above functions here
-    """
-    pass
-
-
+# ─────────────────────────── Manual quick-test ────────────────────────────────
 if __name__ == "__main__":
-    main()
+    result = find_stop_near("Museum of Science")
+    pprint.pprint(result)          # e.g. ('Science Park/West End', True)

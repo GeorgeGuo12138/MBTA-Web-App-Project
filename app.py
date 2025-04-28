@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request
 from mbta_helper import find_stop_near
 
-app = Flask(__name__)      # flask looks for templates/ automatically
+app = Flask(__name__)
 
 
 @app.route("/")
@@ -25,12 +25,10 @@ def nearest_mbta():
             wheelchair=wheelchair,
         )
     except Exception as exc:
-        # Any failure (bad API key, misspelling, no nearby stop, etc.)
         return render_template(
             "error.html",
             message=f"Sorry, could not find a station for “{place}”. ({exc})",
         )
-
-
+    
 if __name__ == "__main__":
     app.run(debug=True)     # auto-reloads whenever you save

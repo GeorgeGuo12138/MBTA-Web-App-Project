@@ -31,8 +31,9 @@ def get_lat_lng(place_name: str) -> tuple[str, str]:
     Because we are avoiding urllib.parse, we only replace blanks with %20.
     That is enough for simple inputs used in this assignment.
     """
-    query = place_name.replace(" ", "%20")
-    url   = f"{MAPBOX_BASE_URL}/{query}.json?access_token={MAPBOX_TOKEN}&limit=1"
+    query = place_name
+    query = query.replace(" ", "%20")
+    url = f"{MAPBOX_BASE_URL}/{query}.json?access_token={MAPBOX_TOKEN}&types=poi,address,place"
     data  = get_json(url)
 
     # Mapbox returns coordinates as [longitude, latitude]

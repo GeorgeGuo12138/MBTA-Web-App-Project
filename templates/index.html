@@ -2,15 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>MBTA Finder</title>
+  <title>Find Nearest MBTA Station</title>
 </head>
 <body>
-  <h1>Find your nearest MBTA stop</h1>
+  <h1>MBTA Finder</h1>
+  <p>Find the nearest MBTA station to any location near Boston.</p>
 
-  <form action="/nearest_mbta" method="post">
-    <label for="place">Address or landmark:</label>
-    <input type="text" id="place" name="place" required />
-    <button type="submit">Search</button>
+  <form action="/station" method="POST">
+    <label for="place_name">Enter a location:</label><br>
+    <input type="text" id="place_name" name="place_name" required><br><br>
+    <input type="submit" value="Find Station">
   </form>
 </body>
 </html>

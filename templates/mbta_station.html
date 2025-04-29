@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Find Nearest MBTA Station</title>
+  </head>
+
+  <body>
+    <h1>MBTA Finder</h1>
+    <p>This is an amazing app to help you find the nearest MBTA station</p>
+
+
+    {% if stop_name %}
+      <p><strong>Closest MBTA stop to {{ place_name }}:</strong> {{ stop_name }}</p>
+      <p><strong>Wheelchair Accessible:</strong> {{ 'Yes' if wheelchair_access else 'No' }}</p>
+    {% elif error %}
+      <p style="color:red;"><strong>Error:</strong> {{ error }}</p>
+    {% endif %}
+  </body>
+  <p><a href="/">← Back to Home</a></p>
+
+</html>

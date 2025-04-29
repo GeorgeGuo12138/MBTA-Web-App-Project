@@ -1,34 +1,34 @@
+from flask import Flask
 from flask import Flask, render_template, request
-from mbta_helper import find_stop_near
+import mbta_helper as mbta_helper
 
 app = Flask(__name__)
 
-
-@app.route("/")
-def index():
-    """Show the home page with the search form."""
+# Index
+@app.route("/", methods=["GET"])
+def home():
     return render_template("index.html")
-
-
-@app.route("/nearest_mbta", methods=["POST"])
-def nearest_mbta():
-    """Handle the form submission and show the result page."""
-    place = request.form.get("place", "").strip()
-    if not place:
-        return render_template("error.html", message="Please enter a place.")
+# MBTA_Station.HTML
+@app.route("/station", methods=["POST"])
+def station():
+    place_name = request.form.get("place_name")
     try:
-        station, wheelchair = find_stop_near(place)
+        stop_name, wheelchair_access = mbta_helper.find_stop_near(place_name)
         return render_template(
             "mbta_station.html",
-            place=place,
-            station=station,
-            wheelchair=wheelchair,
+            place_name=place_name,
+            stop_name=stop_name,
+            wheelchair_access=wheelchair_access,
+            error=None
         )
-    except Exception as exc:
+    except Exception as e:
         return render_template(
-            "error.html",
-            message=f"Sorry, could not find a station for “{place}”. ({exc})",
+            "mbta_station.html",
+            place_name=place_name,
+            stop_name=None,
+            wheelchair_access=None,
+            error=str(e)
         )
-    
+
 if __name__ == "__main__":
-    app.run(debug=True)     # auto-reloads whenever you save
+    app.run(debug=True)
